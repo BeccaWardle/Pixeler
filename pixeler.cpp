@@ -57,6 +57,8 @@ int getBrightest(Mat img, int widths, int height, int blockW, int blockH, int ch
             }
         }
     }
+    // TODO
+    // call getAverage if brightest is white(?)
     return brightest;
 }
 
@@ -71,6 +73,8 @@ int main(int argc, char *argv[])
      argv[5]: (optional) ouptut file
      */
 
+    // TODO
+    // replace with proper argument flags and processing
     if (argc < 5)
     {
         cout << "Error not enough arguments\n1: the height of the pixelling blocks\n2: the width of the pixelling blocks\n3: use brightest pixel (1) or average (any other value)\n4: path of image to be pixelled\n5: (optional) file path of output, if non-specified the image will just be displayed\n";
@@ -99,8 +103,7 @@ int main(int argc, char *argv[])
     {
         for (int y = 0; y < height - blockH; y += blockH)
         {
-            // cycle through all channels
-            // TODO: find a way to do this without loop or parallise with #pragma omp parallel for
+            // cycle through all channels (necessary?)
             for (int c = 0; c < 3; c++)
             {
                 if (stoi(argv[3]) == 1)
