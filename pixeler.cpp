@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
         return 2;
     }
 
-    String name = "tmp.jpg";
+    String name = argv[3];
     bool average = true, white=false;
     int blockH = std::stoi(argv[1]);
     int blockW = std::stoi(argv[2]);
