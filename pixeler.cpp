@@ -20,22 +20,18 @@ class pixMat
         bool average, white;
         Mat img;
 
-        pixMat(std::string im_name, int blockH = 5, int blockW = 5, bool average = true, bool white = false)
+        pixMat(std::string im_name)
         {
-            // TODO: unsure what this-> should refer to for imread
             this->img = imread(im_name, IMREAD_COLOR);
-
 
             // TODO: replace with proper error raising
             if (this->img.empty())
             {
                 std::cout << "Could not read image: " << im_name << std::endl;
+                exit(EXIT_FAILURE);
             }
 
             // outImg = Mat(inImg.rows, inImg.cols, CV_8UC3, Scalar(0, 0, 0));
-
-            this->white = average;
-            this->white = white;
         }
 
         void write(std::string name)
@@ -52,10 +48,19 @@ class pixMat
             moveWindow(winName, 0, 0);
 
             imshow(winName, img);
+            std::cout << "Waiting on key to release\n";
+            waitKey(0);
         }
 
-        void pixelate()
+        void pixelate(int blockW, int blockH, bool average, bool white)
         {
+            this->blockW = blockW;
+            this->blockH = blockH;
+            this->average = average;
+            this->white = white;
+
+            // std::cout << "ImgH: " << img.rows << "\tImgW: " << img.cols << std::endl;
+            // std::cout << "blockW: " << blockW << "\nblockH: " << blockH << std::endl;
             // TODO: write without double for loop
             // parallise using #pragma omp parallel for
             for (int x = 0; x < this->img.cols - blockW; x += blockW)
@@ -63,18 +68,23 @@ class pixMat
                 for (int y = 0; y < this->img.rows - blockH; y += blockH)
                 {
                     // cycle through all channels (necessary?)
-                    for (int c = 0; c < 3; c++)
-                    {
+                    //for (int c = 0; c < 3; c++)
+                    //{
+                    // std::cout << "Now working on: " << x << " x " << y << std::endl;
                         if (average)
                         {
-                            setBlock(getBrightest(x, y), x, y);
+                            // std::cout << "Called average\n";
+                            setBlock(getAverage(x, y), x, y);
                         }
                         else
                         {
-                            //gets the average of the pixel block and then sets all the pixels in that block to that value
-                            setBlock(getAverage(x, y), x, y);
+                            //gets the brightest pixel in block and then sets all the pixels in that block to that value
+                            // std::cout << "Called brightest\n";
+                            Scalar output = getBrightest(x, y);
+                            // std::cout << "Brightest: " << output << std::endl;
+                            setBlock(output, x, y);
                         }
-                    }
+                    //}
                 }
             }
         }
@@ -96,6 +106,7 @@ class pixMat
                         else if (value[i] < 0)
                             value[i] = 0;
                     }
+                    // std::cout << "Setting " << startH + h << " x "  << startW + w << " = " << value.mul(increase) << std::endl;
                     img.at<Scalar>(startH + h, startW + w) = value.mul(increase);
                 }
             }
@@ -108,7 +119,9 @@ class pixMat
             {
                 for (int y = 0; y < blockH; y++)
                 {
+                    // std::cout << "Pixel: " << blockH + y << ", " << blockW + x << std::endl;
                     Scalar current = this->img.at<Scalar>(blockH + y, blockW + x);
+                    // std::cout << "Allocated current: " << current;
                     for (int i = 0; i < 3; i++)
                     {
                         if (current[i] > brightest[i])
@@ -130,8 +143,8 @@ class pixMat
                     continue;
                 }
             }
-            
-            
+
+
             if (aver == 3)
                 return (getAverage(x, y));
             else
@@ -154,6 +167,7 @@ class pixMat
         }
 };
 
+
 int main(int argc, char *argv[])
 {
     /*
@@ -164,39 +178,74 @@ int main(int argc, char *argv[])
      argv[4]: image to be pixelled
      argv[5]: (optional) ouptut file
      */
-    std::cout << "Run\n";
+
     // TODO
     // replace with proper argument flags and processing
-    if (argc < 5)
+    //if (argc < 5)
+    //{
+        //std::cout << "Error not enough arguments\n1: the height of the pixelling blocks\n2: the width of the pixelling blocks\n3: use brightest pixel (1) or average (any other value)\n4: path of image to be pixelled\n5: (optional) file path of output, if non-specified the image will just be displayed\n";
+        //return 2;
+    //}
+
+    String inName, outName = "";
+    bool average, white = false;
+    int blockH, blockW = 10;
+
+    int opt;
+
+    while ((opt = getopt(argc, argv, "h:w:ano:i:")) != EOF)
     {
-        std::cout << "Error not enough arguments\n1: the height of the pixelling blocks\n2: the width of the pixelling blocks\n3: use brightest pixel (1) or average (any other value)\n4: path of image to be pixelled\n5: (optional) file path of output, if non-specified the image will just be displayed\n";
-        return 2;
+        switch(opt)
+        {
+            case 'a':
+                average = true;
+                break;
+            case 'n':
+                white = true;
+                break;
+            case 'h':
+                blockH = std::stoi(optarg, NULL, 10);
+                break;
+            case 'w':
+                blockW = std::stoi(optarg, NULL, 10);
+                break;
+            case 'o':
+                outName = (String) optarg;
+                break;
+            case 'i':
+                inName = (String) optarg;
+                break;
+            case '?':
+                if (optopt == 'w' || optopt == 'w' || optopt == 'i' || optopt == 'o')
+                    fprintf(stderr, "-%c requires an argument\n", optopt);
+                else if (isprint(optopt))
+                    fprintf(stderr, "Unknown option -%c", optopt);
+                else
+                    fprintf(stderr, "Unknown option character %x\n", optopt);
+            default:
+                exit(EXIT_FAILURE);
+
+        }
+    }
+    if (inName.size() == 0)
+    {
+        fprintf(stderr, "Program requires and input with -i flag\n");
+        exit(EXIT_FAILURE);
     }
 
-    String name = argv[3];
-    bool average = true, white=false;
-    int blockH = std::stoi(argv[1]);
-    int blockW = std::stoi(argv[2]);
-
-    pixMat img = pixMat(name, blockH, blockW, average, white);
+    pixMat img = pixMat(inName);
+    std::cout << "Created basic image object\n";
     // pixMat img2 = static_cast<pixMat>(imread(name, IMREAD_COLOR));
     //int height = (img.rows / blockH) * blockH;
     //int widths = (img.cols / blockW) * blockW;
 
-
-    if (argc >= 6)
+    std::cout << "Calling im.show()\n";
+    img.show();
+    img.pixelate(blockH, blockW, average, white);
+    if (outName.size() != 0)
     {
-        String fileName(argv[5]);
-        //fileName += ".png";
-        img.write(fileName);
+        img.write(outName);
     }
-    else
-    {
-        img.show();
-        img.pixelate();
-        waitKey(0);
-        img.show();
-        waitKey(0);
-    }
+    img.show();
     return 0;
 }
