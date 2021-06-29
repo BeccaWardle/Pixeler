@@ -18,14 +18,14 @@ class pixMat
     public:
         int blockH, blockW;
         bool average, white;
-        Mat img;
+        Mat mat;
 
         pixMat(std::string im_name)
         {
-            this->img = imread(im_name, IMREAD_COLOR);
+            this->mat = imread(im_name, IMREAD_COLOR);
 
             // TODO: replace with proper error raising
-            if (this->img.empty())
+            if (this->mat.empty())
             {
                 std::cout << "Could not read image: " << im_name << std::endl;
                 exit(EXIT_FAILURE);
@@ -36,20 +36,19 @@ class pixMat
 
         void write(std::string name)
         {
-            imwrite(name, img);
+            imwrite(name, mat);
         }
 
         void show()
         {
-
             //ensures the window is always placed in the top left corner and the name can be reused later in the program
             String winName = "image";
             namedWindow(winName, WINDOW_AUTOSIZE);
             moveWindow(winName, 0, 0);
 
-            imshow(winName, img);
-            std::cout << "Waiting on key to release\n";
+            imshow(winName, mat);
             waitKey(0);
+            destroyAllWindows();
         }
 
         void pixelate(int blockW, int blockH, bool average, bool white)
@@ -59,13 +58,13 @@ class pixMat
             this->average = average;
             this->white = white;
 
-            // std::cout << "ImgH: " << img.rows << "\tImgW: " << img.cols << std::endl;
+            // std::cout << "ImgH: " << mat.rows << "\tImgW: " << mat.cols << std::endl;
             // std::cout << "blockW: " << blockW << "\nblockH: " << blockH << std::endl;
             // TODO: write without double for loop
             // parallise using #pragma omp parallel for
-            for (int x = 0; x < this->img.cols - blockW; x += blockW)
+            for (int x = 0; x < this->mat.cols - blockW; x += blockW)
             {
-                for (int y = 0; y < this->img.rows - blockH; y += blockH)
+                for (int y = 0; y < this->mat.rows - blockH; y += blockH)
                 {
                     // cycle through all channels (necessary?)
                     //for (int c = 0; c < 3; c++)
@@ -107,7 +106,7 @@ class pixMat
                             value[i] = 0;
                     }
                     // std::cout << "Setting " << startH + h << " x "  << startW + w << " = " << value.mul(increase) << std::endl;
-                    img.at<Scalar>(startH + h, startW + w) = value.mul(increase);
+                    mat.at<Scalar>(startH + h, startW + w) = value.mul(increase);
                 }
             }
         }
@@ -120,7 +119,7 @@ class pixMat
                 for (int y = 0; y < blockH; y++)
                 {
                     // std::cout << "Pixel: " << blockH + y << ", " << blockW + x << std::endl;
-                    Scalar current = this->img.at<Scalar>(blockH + y, blockW + x);
+                    Scalar current = this->mat.at<Scalar>(blockH + y, blockW + x);
                     // std::cout << "Allocated current: " << current;
                     for (int i = 0; i < 3; i++)
                     {
@@ -159,7 +158,7 @@ class pixMat
             {
                 for (int y = 0; y < blockH; y++)
                 {
-                    total = total + this->img.at<Scalar>(blockH + y, blockW + x);
+                    total = total + this->mat.at<Scalar>(blockH + y, blockW + x);
                 }
             }
             Scalar average = (total / (blockH * blockW));
@@ -171,21 +170,14 @@ class pixMat
 int main(int argc, char *argv[])
 {
     /*
-     argv[0]: program call
-     argv[1]: height of pixelling block
-     argv[2]: width of pixelling block
-     argv[3]: brightest pixel or average (1 = brightest)
-     argv[4]: image to be pixelled
-     argv[5]: (optional) ouptut file
-     */
+     *  -a use (average) <flag>, program uses average block value instead of peak
+     *  -r (replace white) <flag>, if this flag is passed white blocks will use the average brightness instead
+     *  -w (width) <val>, width of block to pass over the image in pixels
+     *  -h (height) <val>, height of block to pass over the image in pixels
+     *  -o (output) <name>, file path to save file to
+     *  -i (input) <name>, file path of image to open
+    */
 
-    // TODO
-    // replace with proper argument flags and processing
-    //if (argc < 5)
-    //{
-        //std::cout << "Error not enough arguments\n1: the height of the pixelling blocks\n2: the width of the pixelling blocks\n3: use brightest pixel (1) or average (any other value)\n4: path of image to be pixelled\n5: (optional) file path of output, if non-specified the image will just be displayed\n";
-        //return 2;
-    //}
 
     String inName, outName = "";
     bool average, white = false;
@@ -200,7 +192,7 @@ int main(int argc, char *argv[])
             case 'a':
                 average = true;
                 break;
-            case 'n':
+            case 'r':
                 white = true;
                 break;
             case 'h':
@@ -229,23 +221,24 @@ int main(int argc, char *argv[])
     }
     if (inName.size() == 0)
     {
-        fprintf(stderr, "Program requires and input with -i flag\n");
+        fprintf(stderr, "Program requires an input with -i flag\n");
         exit(EXIT_FAILURE);
     }
 
     pixMat img = pixMat(inName);
     std::cout << "Created basic image object\n";
-    // pixMat img2 = static_cast<pixMat>(imread(name, IMREAD_COLOR));
-    //int height = (img.rows / blockH) * blockH;
-    //int widths = (img.cols / blockW) * blockW;
 
     std::cout << "Calling im.show()\n";
     img.show();
+
     img.pixelate(blockH, blockW, average, white);
+
     if (outName.size() != 0)
     {
         img.write(outName);
     }
     img.show();
+    waitKey(1000);
+    destroyAllWindows();
     return 0;
 }
