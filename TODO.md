@@ -7,3 +7,5 @@ Re-write as class implementation with functions (?)
 Re-write looping code to remove need for double for loop (?)
 
 Add \#pragma omp parallel to reduce execution time for large images
+
+Add more complex "pixelating" (guassin, etc.)
