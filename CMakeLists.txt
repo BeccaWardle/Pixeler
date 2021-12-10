@@ -7,7 +7,7 @@ project( pixeler VERSION 0.1
 find_package( OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-add_executable(pixeler main.cpp include/image.h src/image.cpp)
+add_executable(pixeler main.cpp include/pixMat.h src/pixMat.cpp)
 
 target_include_directories( pixeler PUBLIC include )
 #add_executable( MassBody src/MassBody.cpp )
