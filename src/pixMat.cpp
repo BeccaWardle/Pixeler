@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 #include <cmath>
-#include <unistd.h>
-#include <stdexcept>
+//#include <unistd.h>
+//#include <stdexcept>
 
 #include <opencv2/core.hpp>
 #include <opencv2/core/types.hpp>
@@ -11,13 +11,19 @@
 
 #include "pixMat.h"
 
-// expand on cv::Scalar operations (adding, multiplying, logical operations)
-// build off CV2 Mat (allows for show and save operations)
+
+// Public Block
 pixMat::pixMat() = default;
 
 pixMat::pixMat(std::string im_name)
 {
-    load(im_name);
+    bool succ = load(im_name);
+
+    if (!succ)
+    {
+        std::cout << "Failed to load image";
+        exit(EXIT_FAILURE);
+    }
 }
 
 pixMat::pixMat(std::string im_name, bool overwrite)
@@ -33,23 +39,23 @@ pixMat::pixMat(std::string im_name, bool overwrite)
 pixMat::pixMat::pixMat(std::string im_name, bool average, bool white)
 {
     this->average = average;
-    this->white_overload = white;
+    this->white_override = white;
     load(im_name);
 }
 
-pixMat::pixMat(std::string im_name, int blockW, int blockH)
+pixMat::pixMat(std::string im_name, uint32_t blockW, uint32_t blockH)
 {
     this->blockW = blockW;
     this->blockH = blockH;
     load(im_name);
 }
 
-pixMat::pixMat(std::string im_name, int blockW, int blockH, bool average, bool white)
+pixMat::pixMat(std::string im_name, uint32_t blockW, uint32_t blockH, bool average, bool white)
 {
     this->blockW = blockW;
     this->blockH = blockH;
     this->average = average;
-    this->white_overload = white;
+    this->white_override = white;
     load(im_name);
 }
 
@@ -72,7 +78,7 @@ bool pixMat::write(std::string name)
 
 void pixMat::show()
 {
-    show("image");
+    show("image", 0);
 }
 
 void pixMat::show(std::string window_name, const int wait)
@@ -89,38 +95,39 @@ void pixMat::show(std::string window_name, const int wait)
 
 void pixMat::blockPixel()
 {
-    // std::cout << "ImgH: " << mat.rows << "\tImgW: " << mat.cols << std::endl;
-    // std::cout << "blockW: " << blockW << "\nblockH: " << blockH << std::endl;
+    std::cout << "ImgH: " << mat.rows << "\tImgW: " << mat.cols << std::endl;
+    std::cout << "blockW: " << blockW << "\tblockH: " << blockH << std::endl;
+
     // TODO: write without double for loop
     // parallise using #pragma omp parallel for
     for (int x = 0; x < this->mat.cols - blockW; x += blockW)
     {
         for (int y = 0; y < this->mat.rows - blockH; y += blockH)
         {
-            // cycle through all channels (necessary?)
-            //for (int c = 0; c < 3; c++)
-            //{
-            // std::cout << "Now working on: " << x << " x " << y << std::endl;
+            cv::Scalar vals;
+
             if (average)
             {
-                // std::cout << "Called average\n";
-                setBlock(getAverage(x, y), x, y);
+                //std::cout << "Called average";
+                vals = getAverage(x, y);
             }
             else
             {
                 //gets the brightest pixel in block and then sets all the pixels in that block to that value
-                // std::cout << "Called brightest\n";
-                cv::Scalar output = getBrightest(x, y);
-                // std::cout << "Brightest: " << output << std::endl;
-                setBlock(output, x, y);
+                //std::cout << "Called brightest";
+                vals = getBrightest(x, y);
             }
 
-            //}
+            std::cout << "max x:" << x + blockW << ", max y: " << y + blockH << " vals: " << vals << "    ";
+            setBlock(vals, x, y);
         }
+
+        std::cout << std::endl;
     }
+
 }
 
-void pixMat::blockPixel(int dim)
+void pixMat::blockPixel(uint32_t dim)
 {
     this->blockW = this->blockH = dim;
     blockPixel();
@@ -128,11 +135,11 @@ void pixMat::blockPixel(int dim)
 
 void pixMat::blockPixel(bool input)
 {
-    this->average = this->white_overload = input;
+    this->average = this->white_override = input;
     blockPixel();
 }
 
-void pixMat::blockPixel(int blockW, int blockH)
+void pixMat::blockPixel(uint32_t blockW, uint32_t blockH)
 {
     this->blockW = blockW;
     this->blockH = blockH;
@@ -142,22 +149,24 @@ void pixMat::blockPixel(int blockW, int blockH)
 void pixMat::blockPixel(bool average, bool white)
 {
     this->average = average;
-    this->white_overload = white;
+    this->white_override = white;
     blockPixel();
 }
 
-void pixMat::blockPixel(int blockW, int blockH, bool average, bool white)
+void pixMat::blockPixel(uint32_t blockW, uint32_t blockH, bool average, bool white)
 {
     this->blockW = blockW;
     this->blockH = blockH;
     this->average = average;
-    this->white_overload = white;
+    this->white_override = white;
     blockPixel();
 }
 
 
-void pixMat::setBlock(cv::Scalar value, int startW, int startH, const float increase)
+// Private Block
+void pixMat::setBlock(cv::Scalar value, uint32_t startW, uint32_t startH, const float increase)
 {
+
     for (int w = 0; w < blockW; w++)
     {
         for (int h = 0; h < blockH; h++)
@@ -178,7 +187,7 @@ void pixMat::setBlock(cv::Scalar value, int startW, int startH, const float incr
     }
 }
 
-cv::Scalar pixMat::getBrightest(int x, int y, const int threshold)
+cv::Scalar pixMat::getBrightest(uint32_t x, uint32_t y, const uint32_t threshold)
 {
     cv::Scalar brightest = cv::Scalar(0, 0, 0);
 
@@ -200,7 +209,7 @@ cv::Scalar pixMat::getBrightest(int x, int y, const int threshold)
 
     int aver = 0;
 
-    if (this->white_overload)
+    if (this->white_override)
     {
         for (int i = 0; i < 3; i++)
         {
@@ -218,7 +227,7 @@ cv::Scalar pixMat::getBrightest(int x, int y, const int threshold)
         return brightest;
 }
 
-cv::Scalar pixMat::getAverage(int x, int y)
+cv::Scalar pixMat::getAverage(uint32_t x, uint32_t y)
 {
     // TODO: look at matrix manipulations to avoid double for loops
     cv::Scalar total = cv::Scalar(0, 0, 0);
@@ -229,6 +238,6 @@ cv::Scalar pixMat::getAverage(int x, int y)
             total = total + this->mat.at<cv::Scalar>(blockH + y, blockW + x);
     }
 
-    cv::Scalar average = (total / (blockH * blockW));
+    cv::Scalar average = (total / (double) (blockH * blockW));
     return average;
 }

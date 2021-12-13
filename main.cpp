@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
 
 
     std::string inName, outName = "";
-    bool average, white = false;
-    int blockH, blockW = 10;
+    bool average = false, white = false;
+    int blockH = 10, blockW = 10;
 
     int opt;
 
@@ -80,8 +80,11 @@ int main(int argc, char *argv[])
 
     img.blockPixel(blockH, blockW, average, white);
 
+    std::cout << "Displaying image\n";
+    img.show();
+
     if (outName.size() != 0)
         img.write(outName);
 
-    return 0;
+    exit(EXIT_SUCCESS);
 }

@@ -2,6 +2,7 @@
 #define pixMat_H
 
 #include <string>
+#include <cstdint>
 
 #include <opencv2/core.hpp>
 
@@ -9,15 +10,15 @@
 class pixMat
 {
     public:
-        int blockH, blockW = 0;
-        bool average, white_overload = false;
+        uint32_t blockH = 10, blockW = 10, max_thresh = 255;
+        bool average = false, white_override = true;
 
         pixMat();
         pixMat(std::string im_name);
         pixMat(std::string im_name, bool overwrite);
         pixMat(std::string im_name, bool average, bool white);
-        pixMat(std::string im_name, int blockW, int blockH);
-        pixMat(std::string im_name, int blockW, int blockH, bool average, bool white);
+        pixMat(std::string im_name, uint32_t blockW, uint32_t blockH);
+        pixMat(std::string im_name, uint32_t blockW, uint32_t blockH, bool average, bool white);
 
         bool load(std::string file_name);
         bool write(std::string file_name);
@@ -25,17 +26,17 @@ class pixMat
         void show(std::string window_name, const int wait = 0);
 
         void blockPixel();
-        void blockPixel(int dim);
+        void blockPixel(uint32_t dim);
         void blockPixel(bool input);
-        void blockPixel(int blockW, int blockH);
+        void blockPixel(uint32_t blockW, uint32_t blockH);
         void blockPixel(bool average, bool white);
-        void blockPixel(int blockW, int blockH, bool average, bool white_overload);
+        void blockPixel(uint32_t blockW, uint32_t blockH, bool average, bool white_override);
 
     private:
         cv::Mat mat;
         cv::Mat outMat;
-        void setBlock(cv::Scalar value, int startW, int startH, const float increase = 1.0);
-        cv::Scalar getBrightest(int x, int y, const int threshold = 3 * 250);
-        cv::Scalar getAverage(int x, int y);
+        void setBlock(cv::Scalar value, uint32_t startW, uint32_t startH, const float increase = 1.0);
+        cv::Scalar getBrightest(uint32_t x, uint32_t y, const uint32_t threshold = 3 * 250);
+        cv::Scalar getAverage(uint32_t x, uint32_t y);
 };
 #endif
