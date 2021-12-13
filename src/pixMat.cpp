@@ -118,7 +118,7 @@ void pixMat::blockPixel()
                 vals = getBrightest(x, y);
             }
 
-            std::cout << "max x:" << x + blockW << ", max y: " << y + blockH << " vals: " << vals << "    ";
+            //std::cout << "max x:" << x + blockW << ", max y: " << y + blockH << " vals: " << vals << "    ";
             setBlock(vals, x, y);
         }
 
@@ -167,6 +167,8 @@ void pixMat::blockPixel(uint32_t blockW, uint32_t blockH, bool average, bool whi
 void pixMat::setBlock(cv::Scalar value, uint32_t startW, uint32_t startH, const float increase)
 {
 
+    std::cout << " Setting block: " << startW << ", " << startH << "  ";
+
     for (int w = 0; w < blockW; w++)
     {
         for (int h = 0; h < blockH; h++)
@@ -189,6 +191,7 @@ void pixMat::setBlock(cv::Scalar value, uint32_t startW, uint32_t startH, const 
 
 cv::Scalar pixMat::getBrightest(uint32_t x, uint32_t y, const uint32_t threshold)
 {
+    std::cout << " Getting Brit: " << x << ", " << y << "  ";
     cv::Scalar brightest = cv::Scalar(0, 0, 0);
 
     for (int x = 0; x < blockW; x++)

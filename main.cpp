@@ -52,6 +52,8 @@ int main(int argc, char *argv[])
             inName = (std::string) optarg;
             break;
 
+        //case 'help':
+        //printf("-a use (average) <flag>, program uses average block value instead of peak \n-r (replace white) <flag>, if this flag is passed white blocks will use the average brightness instead \n-w (width) <val>, width of block to pass over the image in pixels \n-h (height) <val>, height of block to pass over the image in pixels \n-o (output) <name>, file path to save file to \n-i (input) <name>, file path of image to open ");
         case '?':
             if (optopt == 'w' || optopt == 'w' || optopt == 'i' || optopt == 'o')
                 fprintf(stderr, "-%c requires an argument\n", optopt);
