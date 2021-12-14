@@ -6,12 +6,14 @@
 
 #include <opencv2/core.hpp>
 
+using iScalar = cv::Scalar_<uint8_t>;
 
 class pixMat
 {
     public:
-        uint32_t blockH = 10, blockW = 10, max_thresh = 255;
+        uint32_t blockH = 10, blockW = 10, max_thresh = 255, threshold = 240;
         bool average = false, white_override = true;
+
 
         pixMat();
         pixMat(std::string im_name);
@@ -22,8 +24,8 @@ class pixMat
 
         bool load(std::string file_name);
         bool write(std::string file_name);
-        void show();
-        void show(std::string window_name, const int wait = 0);
+        void show(int8_t image);
+        void show(int8_t image, std::string window_name, const int wait = 0);
 
         void blockPixel();
         void blockPixel(uint32_t dim);
@@ -35,8 +37,8 @@ class pixMat
     private:
         cv::Mat mat;
         cv::Mat outMat;
-        void setBlock(cv::Scalar value, uint32_t startW, uint32_t startH, const float increase = 1.0);
-        cv::Scalar getBrightest(uint32_t x, uint32_t y, const uint32_t threshold = 3 * 250);
-        cv::Scalar getAverage(uint32_t x, uint32_t y);
+        void setBlock(iScalar value, uint32_t startW, uint32_t startH, const float increase = 1.0);
+        iScalar getBrightest(uint32_t x, uint32_t y);
+        iScalar getAverage(uint32_t x, uint32_t y);
 };
 #endif

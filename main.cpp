@@ -78,12 +78,12 @@ int main(int argc, char *argv[])
     std::cout << "Created basic image object\n";
 
     std::cout << "Calling im.show()\n";
-    img.show();
+    img.show(0);
 
     img.blockPixel(blockH, blockW, average, white);
 
     std::cout << "Displaying image\n";
-    img.show();
+    img.show(1);
 
     if (outName.size() != 0)
         img.write(outName);
