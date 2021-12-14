@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstdint>
+#include <vector>
 
 #include <opencv2/core.hpp>
 
@@ -37,8 +38,8 @@ class pixMat
     private:
         cv::Mat mat;
         cv::Mat outMat;
-        void setBlock(iScalar value, uint32_t startW, uint32_t startH, const float increase = 1.0);
-        iScalar getBrightest(uint32_t x, uint32_t y);
-        iScalar getAverage(uint32_t x, uint32_t y);
+        void setBlock(std::vector<uint8_t> value, uint32_t startW, uint32_t startH, const float increase = 1.0);
+        std::vector<uint8_t> getBrightest(uint32_t x, uint32_t y);
+        std::vector<uint8_t> getAverage(uint32_t x, uint32_t y);
 };
 #endif
