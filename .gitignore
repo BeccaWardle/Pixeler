@@ -6,3 +6,5 @@ pixeler
 .vscode
 *out.jpg
 main
+DisplayImage
+stderr.txt

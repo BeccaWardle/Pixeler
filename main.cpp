@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
         -i (input) <name>, file path of image to open
     */
 
-    freopen("stderr.txt", "w", stderr);
+    //freopen("stderr.txt", "w", stderr);
     std::string inName, outName = "";
     bool average = false, white = false;
     int blockH = 10, blockW = 10;
@@ -75,14 +75,18 @@ int main(int argc, char *argv[])
     }
 
     pixMat img = pixMat(inName);
-    std::cout << "Created basic image object\n";
+    fprintf(stderr, "Created basic image object\n");
 
-    std::cout << "Calling im.show()\n";
+    fprintf(stderr, "Calling im.show()\n");
     img.show(0);
 
     img.blockPixel(blockH, blockW, average, white);
 
-    std::cout << "Displaying image\n";
+    fprintf(stderr, "Saving to out.jpg");
+    img.write("out.jpg");
+
+
+    fprintf(stderr, "Displaying image\n");
     img.show(1);
 
     if (outName.size() != 0)

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.7..3.22)
+set (CMAKE_CXX_STANDARD 11)
 project( pixeler VERSION 0.1
     DESCRIPTION "Take input image and pixelate with different techniques"
     LANGUAGES CXX)
