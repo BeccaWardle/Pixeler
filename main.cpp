@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
         -i (input) <name>, file path of image to open
     */
 
-
+    freopen("stderr.txt", "w", stderr);
     std::string inName, outName = "";
     bool average = false, white = false;
     int blockH = 10, blockW = 10;

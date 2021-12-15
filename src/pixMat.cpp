@@ -2,6 +2,7 @@
 #include <string>
 #include <cmath>
 #include <vector>
+#include <algorithm>
 //#include <unistd.h>
 //#include <stdexcept>
 
@@ -11,8 +12,6 @@
 #include <opencv2/imgproc.hpp>
 
 #include "pixMat.h"
-
-using iScalar = cv::Scalar_<uint8_t>;
 
 // Public Block
 pixMat::pixMat() = default;
@@ -35,7 +34,7 @@ pixMat::pixMat(std::string im_name, bool overwrite)
     if (overwrite)
         this->outMat = cv::Mat(this->mat);
     else
-        this->outMat = cv::Mat(this->mat.rows, this->mat.cols, CV_8UC3, iScalar(0.0, 0.0, 0.0));
+        this->outMat = cv::Mat(this->mat.rows, this->mat.cols, CV_8UC3, 0);
 }
 
 pixMat::pixMat::pixMat(std::string im_name, bool average, bool white)
@@ -105,27 +104,20 @@ void pixMat::blockPixel()
 
     // TODO: write without double for loop
     // parallise using #pragma omp parallel for
-    for (uint32_t x = 0; x < this->mat.cols - blockW; x += blockW)
+    for (uint32_t y = 0; y < mat.cols - blockW; y += blockW)
     {
-        for (uint32_t y = 0; y < this->mat.rows - blockH; y += blockH)
+        for (uint32_t x = 0; x < mat.rows - blockH; x += blockH)
         {
-            iScalar vals;
+            std::vector<uint8_t> vals;
 
             if (average)
-            {
                 vals = getAverage(x, y);
-            }
             else
-            {
                 //gets the brightest pixel in block and then sets all the pixels in that block to that value
                 vals = getBrightest(x, y);
-            }
-
-            //std::cout << "max x:" << x + blockW << ", max y: " << y + blockH << " vals: " << vals << "    ";
             setBlock(vals, x, y);
         }
 
-        //std::cout << std::endl;
     }
 
 }
@@ -171,17 +163,17 @@ void pixMat::setBlock(std::vector<uint8_t> value, uint32_t x, uint32_t y, const 
 {
 
     uint8_t *pixelPtr = (uint8_t*) mat.data;
-    fprintf(stderr, " \033[0;31mSetting block: %i, %i\n", x, y);
+    fprintf(stderr, " \033[0;31mSetting block: %u, %u\n", x, y);
 
-    for (int w = 0; w < blockW; w++)
+    for (uint32_t w = 0; w < blockW; w++)
     {
-        for (int h = 0; h < blockH; h++)
+        for (uint32_t h = 0; h < blockH; h++)
         {
             // Loop over iScalar and check value within min/max
 
             // std::cout << "Setting " << startH + h << " x "  << startW + w << " = " << value.mul(increase) << std::endl;
             //if ((startH + h > 530) && (startW + w > 750))
-            fprintf(stderr, " \033[0;37m[%i, %i]: (%i, %i, %i)", y + h, x + w, value[0], value[1], value[2]);
+            fprintf(stderr, " \033[0;37m[%u, %u]: (%u,%u,%u)", y + h, x + w, value[0], value[1], value[2]);
 
 
             for (uint8_t i = 0; i < value.size(); i++)
@@ -195,23 +187,23 @@ void pixMat::setBlock(std::vector<uint8_t> value, uint32_t x, uint32_t y, const 
 
 std::vector<uint8_t> pixMat::getBrightest(uint32_t x, uint32_t y)
 {
-    fprintf(stderr, " \033[0;35mGetting Brit: %i, %i\n", x, y);
+    fprintf(stderr, " \033[0;35mGetting Brit: %u, %u\n", x, y);
     uint8_t chan_n = mat.channels();
     std::vector<uint8_t> brightest(chan_n, 0);
     double brightest_sum = 0;
 
     uint8_t *pixelPtr = (uint8_t*) mat.data;
 
-    for (int w= 0; w < blockW; w++)
+    for (uint32_t w= 0; w < blockW; w++)
     {
-        for (int h = 0; h < blockH; h++)
+        for (uint32_t h = 0; h < blockH; h++)
         {
             // std::cout << "Pixel: " << blockH + y << ", " << blockW + x << std::endl;
             std::vector<uint8_t> current(chan_n);
             double current_sum = 0;
 
             // std::cout << "Allocated current: " << current;
-            for (int i = 0; i < brightest.size(); i++)
+            for (uint32_t i = 0; i < brightest.size(); i++)
             {
                 current.at(i) = pixelPtr[(w+x)*mat.cols*chan_n + (h+y)*chan_n + i];
                 current_sum += current.at(i);
@@ -223,12 +215,13 @@ std::vector<uint8_t> pixMat::getBrightest(uint32_t x, uint32_t y)
                 brightest_sum = current_sum;
             }
 
-            fprintf(stderr, "\033[0;33m [%u, %u]: (%u, %u, %u)\n", y + h, x + w, current[0], current[1], current[2]);
+            fprintf(stderr, "\033[0;33m [%u, %u]: (%u,%u,%u)", y + h, x + w, current[0], current[1], current[2]);
         }
+        fprintf(stderr, "\n");
 
     }
 
-    int aver = 0;
+    uint8_t aver = 0;
 
     for (uint8_t i = 0; i < brightest.size(); i++)
     {
@@ -238,7 +231,6 @@ std::vector<uint8_t> pixMat::getBrightest(uint32_t x, uint32_t y)
         else if (brightest.at(i) < 0)
             brightest.at(i) = 0;
     }
-    fprintf(stderr, " \033[0;37mBrightest: %u, %u, %u\n", brightest[0], brightest[1], brightest[2]);
 
     if (this->white_override && aver == 3)
         brightest =  getAverage(x, y);
@@ -249,17 +241,28 @@ std::vector<uint8_t> pixMat::getBrightest(uint32_t x, uint32_t y)
     return brightest;
 }
 
-iScalar pixMat::getAverage(uint32_t x, uint32_t y)
+std::vector<uint8_t> pixMat::getAverage(uint32_t x, uint32_t y)
 {
     // TODO: look at matrix manipulations to avoid double for loops
-    iScalar total = iScalar(0, 0, 0);
+    std::vector<uint8_t> average (mat.channels(), 0);
+    uint8_t *pixelPtr = (uint8_t*) mat.data;
+    uint8_t chan_n = mat.channels();
 
-    for (int x = 0; x < blockW; x++)
+
+    for (uint32_t w = 0; w < blockW; w++)
     {
-        for (int y = 0; y < blockH; y++)
-            total = total + this->mat.at<iScalar>(blockH + y, blockW + x);
+        for (uint32_t h = 0; h < blockH; h++)
+        {
+            for (uint8_t i = 0; i < chan_n; i++)
+            {
+
+            average.at(i) += pixelPtr[(w+x)*mat.cols*chan_n + (h+y)*chan_n + i];
+            }
+        }
     }
 
-    iScalar average = (total / (double) (blockH * blockW));
+    uint32_t size = blockH * blockW;
+
+    std::transform(average.begin(), average.end(), average.begin(), [size](uint8_t c){return c/(size);});
     return average;
 }

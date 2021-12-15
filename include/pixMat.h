@@ -7,12 +7,11 @@
 
 #include <opencv2/core.hpp>
 
-using iScalar = cv::Scalar_<uint8_t>;
 
 class pixMat
 {
     public:
-        uint32_t blockH = 10, blockW = 10, max_thresh = 255, threshold = 240;
+        uint32_t blockH = 10, blockW = 10, threshold = 240;
         bool average = false, white_override = true;
 
 
