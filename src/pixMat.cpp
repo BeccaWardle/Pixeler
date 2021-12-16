@@ -164,7 +164,7 @@ void pixMat::blockPixel(uint32_t blockW, uint32_t blockH, bool average, bool whi
 void pixMat::setBlock(std::vector<uint8_t> value, uint32_t x, uint32_t y, const float increase)
 {
 
-    uint8_t *pixelPtr = (uint8_t *) mat.data;
+    uint8_t *pixelPtr = (uint8_t *) outMat.data;
     //fprintf(stderr, " \033[0;31mSetting block: %u, %u\n", x, y);
 
     for (uint32_t w = 0; w < blockW; w++)
