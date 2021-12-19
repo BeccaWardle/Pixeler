@@ -101,26 +101,29 @@ void pixMat::blockPixel()
 
     // TODO: write without double for loop
     // parallise using #pragma omp parallel for
-    #pragma omp parallel for
+    //#pragma omp parallel for
 
-    for (uint32_t y = 0; y <= mat.cols - blockW; y += blockW)
+    for (uint32_t x = 0; x <= mat.cols - blockW; x += blockW)
     {
-        //#pragma omp parallel for
-
-        for (uint32_t x = 0; x <= mat.rows - blockH; x += blockH)
+        for (uint32_t y = 0; y <= mat.rows - blockH; y += blockH)
         {
             std::vector<uint8_t> vals;
 
             if (average)
-                vals = getAverage(x, y);
+                vals = getAverage(y, x);
             else
-                //gets the brightest pixel in block and then sets all the pixels in that block to that value
-                vals = getBrightest(x, y);
+                //gets the brightest piyel in block and then sets all the piyels in that block to that value
+                vals = getBrightest(y, x);
 
-            setBlock(vals, x, y);
+            setBlock(vals, y, x);
         }
 
     }
+
+    auto main_blockH = this->blockH, main_blockW = this->blockW;
+
+    for (uint32_t y = mat.rows - this->blockH; y <
+
 
 }
 
