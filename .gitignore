@@ -8,3 +8,5 @@ pixeler
 main
 DisplayImage
 stderr.txt
+.cmake
+compile_commands.json
