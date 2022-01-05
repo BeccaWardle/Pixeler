@@ -37,6 +37,7 @@ class pixMat
     private:
         cv::Mat mat;
         cv::Mat outMat;
+        bool print = false;
         void setBlock(std::vector<uint8_t> value, uint32_t startW, uint32_t startH, const float increase = 1.0);
         std::vector<uint8_t> getBrightest(uint32_t x, uint32_t y);
         std::vector<uint8_t> getAverage(uint32_t x, uint32_t y);

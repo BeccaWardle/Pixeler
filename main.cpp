@@ -82,15 +82,15 @@ int main(int argc, char *argv[])
 
     img.blockPixel(blockH, blockW, average, white);
 
-    fprintf(stderr, "Saving to out.jpg");
-    img.write("out.jpg");
+    fprintf(stderr, "Saving to out.jpg\n");
+    img.write("out.png");
 
 
     fprintf(stderr, "Displaying image\n");
     img.show(1);
 
-    if (outName.size() != 0)
-        img.write(outName);
+    //if (outName.size() != 0)
+    //img.write(outName);
 
     exit(EXIT_SUCCESS);
 }
