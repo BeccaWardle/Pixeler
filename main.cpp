@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
 
     pixMat img = pixMat(inName);
     fprintf(stderr, "Created basic image object\n");
+    img.write("tmp_out.png");
 
     fprintf(stderr, "Calling im.show()\n");
     img.show(0);

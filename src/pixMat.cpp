@@ -32,7 +32,8 @@ pixMat::pixMat(std::string im_name, bool overwrite)
     if (overwrite)
         this->outMat = cv::Mat(this->mat);
     else
-        this->outMat = cv::Mat(this->mat.rows, this->mat.cols, CV_8UC3);
+        // TODO: Scalar is not necessary as the data should be overwritten
+        this->outMat = cv::Mat(this->mat.rows, this->mat.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 }
 
 pixMat::pixMat::pixMat(std::string im_name, bool average, bool white) : pixMat(im_name, false)
@@ -151,6 +152,8 @@ void pixMat::blockPixel()
         setBlock(vals, y, x);
         // this->print = false;
     }
+
+    return;
 
     fprintf(stderr, "\nWriting row\n");
     // reset blockW size
